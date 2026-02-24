@@ -1,0 +1,10 @@
+[
+  { "id": "mineta",    "name": "みねた",         "platform": "note",     "profileUrl": "https://note.com/mineta_keiba",  "color": "#4ade80" },
+  { "id": "tenko",     "name": "天狐",           "platform": "note",     "profileUrl": "https://note.com/tenko_keiba",   "color": "#60a5fa" },
+  { "id": "kashiwa",   "name": "かしわうどん",    "platform": "note",     "profileUrl": "https://note.com/kashiwa_udon",  "color": "#f472b6" },
+  { "id": "magicuma",  "name": "マジックウマ",    "platform": "netkeiba", "profileUrl": "https://yoso.netkeiba.com/",      "color": "#facc15" },
+  { "id": "aiss",      "name": "AISS",           "platform": "netkeiba", "profileUrl": "https://yoso.netkeiba.com/",      "color": "#a78bfa" },
+  { "id": "umable",    "name": "ウマーブル",      "platform": "netkeiba", "profileUrl": "https://yoso.netkeiba.com/",      "color": "#fb923c" },
+  { "id": "nakachika", "name": "ナカチカ管理新アカウント", "platform": "netkeiba", "profileUrl": "https://yoso.netkeiba.com/", "color": "#2dd4bf", "comingSoon": true },
+  { "id": "aiumari",   "name": "AIウマリ",        "platform": "netkeiba", "profileUrl": "https://yoso.netkeiba.com/",      "color": "#e879f9" }
+]

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UMAYOSE — ログイン</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Noto+Sans+JP:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="navbar" id="navbar"></header>
+  <main class="page-content">
+    <div class="auth-page">
+      <div class="auth-card">
+        <h1 class="auth-title">ログイン</h1>
+        <p class="auth-subtitle">アカウントにログインして予想を管理</p>
+        <div class="auth-message" id="loginMsg"></div>
+        <form id="loginForm">
+          <div class="form-group">
+            <label class="form-label" for="loginEmail">メールアドレス</label>
+            <input class="form-input" type="email" id="loginEmail" placeholder="mail@example.com" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="loginPassword">パスワード</label>
+            <input class="form-input" type="password" id="loginPassword" placeholder="パスワード" required>
+          </div>
+          <button type="submit" class="btn btn-accent">ログイン</button>
+        </form>
+        <p class="auth-footer">
+          アカウントをお持ちでない方は <a href="register.html">新規登録</a>
+        </p>
+      </div>
+    </div>
+  </main>
+  <footer class="site-footer" id="footer"></footer>
+  <script src="app.js"></script>
+</body>
+</html>

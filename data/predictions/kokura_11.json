@@ -1,0 +1,45 @@
+{
+  "raceId": "kokura_11",
+  "predictions": [
+    {
+      "predictorId": "mineta",
+      "marks": { "5": "◎", "9": "○", "3": "▲", "11": "△" },
+      "purchaseUrl": "https://note.com/mineta_keiba/n/feb2026"
+    },
+    {
+      "predictorId": "kametani",
+      "marks": { "9": "◎", "5": "○", "12": "▲", "3": "△" },
+      "purchaseUrl": "https://www.netkeiba.com/"
+    },
+    {
+      "predictorId": "jai",
+      "marks": { "3": "◎", "9": "○", "5": "▲", "7": "△" },
+      "purchaseUrl": "https://note.com/jai_keiba/n/feb2026"
+    },
+    {
+      "predictorId": "kimura",
+      "marks": { "7": "◎", "3": "○", "9": "▲", "1": "△" },
+      "purchaseUrl": "https://note.com/kimura_keiba/n/feb2026"
+    },
+    {
+      "predictorId": "taro",
+      "marks": { "9": "◎", "12": "○", "7": "▲", "5": "△" },
+      "purchaseUrl": "https://note.com/taro_keiba/n/feb2026"
+    },
+    {
+      "predictorId": "marunori",
+      "marks": { "5": "◎", "3": "○", "11": "▲", "9": "△" },
+      "purchaseUrl": "https://note.com/marunori/n/feb2026"
+    },
+    {
+      "predictorId": "mantetsu",
+      "marks": { "11": "◎", "7": "○", "5": "▲", "9": "△" },
+      "purchaseUrl": "https://www.netkeiba.com/"
+    },
+    {
+      "predictorId": "umameshi",
+      "marks": { "3": "◎", "5": "○", "1": "▲", "12": "△" },
+      "purchaseUrl": "https://umameshi.com/"
+    }
+  ]
+}

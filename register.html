@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UMAYOSE — 新規登録</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Noto+Sans+JP:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="navbar" id="navbar"></header>
+  <main class="page-content">
+    <div class="auth-page">
+      <div class="auth-card">
+        <h1 class="auth-title">新規登録</h1>
+        <p class="auth-subtitle">無料アカウントを作成</p>
+        <div class="auth-message" id="registerMsg"></div>
+        <form id="registerForm">
+          <div class="form-group">
+            <label class="form-label" for="regEmail">メールアドレス</label>
+            <input class="form-input" type="email" id="regEmail" placeholder="mail@example.com" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="regPassword">パスワード</label>
+            <input class="form-input" type="password" id="regPassword" placeholder="4文字以上" required minlength="4">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="regConfirm">パスワード（確認）</label>
+            <input class="form-input" type="password" id="regConfirm" placeholder="もう一度入力" required>
+          </div>
+          <button type="submit" class="btn btn-accent">登録する</button>
+        </form>
+        <p class="auth-footer">
+          すでにアカウントをお持ちの方は <a href="login.html">ログイン</a>
+        </p>
+      </div>
+    </div>
+  </main>
+  <footer class="site-footer" id="footer"></footer>
+  <script src="app.js"></script>
+</body>
+</html>

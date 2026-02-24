@@ -1,0 +1,8 @@
+No.,階層,ページ名,URL,遷移元,遷移先,主な機能,認証,備考
+1,L1,トップ（レース一覧）,index.html,ログイン成功時 / 新規登録成功時 / 全ページナビバー / race.html戻りリンク,race.html?id={raceId}&date={date},当日のレース一覧表示（会場別グループ化）、会場タブ切替（モバイル）、レース名・距離・発走時刻・グレード表示,不要,日付データがない場合は2026-02-16にフォールバック
+2,L2,出馬表,race.html?id={raceId}&date={date},index.html（レース行クリック）,index.html（戻りリンク） / results.html?id={raceId}&date={date}（結果ボタン） / 外部サイト（予想家プロフィール）,出馬表表示（枠番・馬番・馬名・騎手・斤量・オッズ・人気・テン指数）、MY印入力（◎○▲△）、予想家リンク一覧,不要,MY印はlocalStorage保存。テン指数は現在ダミー算出
+3,L1,速報一覧,results.html,全ページナビバー,results.html?id={raceId}&date={date}（各レースカード）,全レースの結果概要一覧（会場別）、上位3着表示、結果未確定レースの表示,不要,パラメータなしで一覧モード表示
+4,L2,結果詳細,results.html?id={raceId}&date={date},results.html（レースカードクリック） / race.html（結果ボタン）,results.html（戻りリンク） / race.html?id={raceId}&date={date}（出馬表リンク）,着順表示（馬番・馬名・騎手・人気）、払戻金表示（単勝・複勝・馬連・馬単・3連複・3連単）、予想的中判定表示,不要,predictions JSONから各予想家の的中を自動判定
+5,L1,予想家一覧,predictors.html,全ページナビバー,外部サイト（note.com / netkeiba.com）,予想家カード一覧表示（アバター・名前・プラットフォーム）、外部プロフィールリンク、Coming Soonバッジ表示,不要,現在8名登録。サイト内詳細ページは未実装
+6,L1,ログイン,login.html,全ページナビバー（未ログイン時） / register.html,index.html（ログイン成功時） / register.html（新規登録リンク）,メール・パスワードによるログイン、エラーメッセージ表示,不要（認証画面）,localStorage認証（平文保存）。サーバーサイド認証は未実装
+7,L1,新規登録,register.html,login.html,index.html（登録成功時） / login.html（ログインリンク）,メール・パスワード・確認入力、バリデーション（4文字以上・一致確認・重複チェック）、自動ログイン,不要（認証画面）,登録成功時は自動ログインしてトップへリダイレクト
