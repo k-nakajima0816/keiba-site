@@ -544,7 +544,7 @@ img { max-width: 100%; display: block; }
   width: 100%;
   border-collapse: collapse;
   font-size: 0.85rem;
-  min-width: 700px;
+  min-width: 1200px;
 }
 
 .entries-table thead {
@@ -587,7 +587,7 @@ img { max-width: 100%; display: block; }
 }
 
 .entries-table tbody tr:hover {
-  background: rgba(230, 180, 34, 0.06);
+  background: #fbf4d5;
 }
 
 .entries-table tbody tr:last-child td {
@@ -1396,7 +1396,6 @@ span.predictor-coming-soon {
   background: var(--table-row-even);
 }
 
-.entries-table tbody tr:hover,
 .result-table tbody tr:hover {
   background: var(--table-row-hover);
 }
@@ -1442,44 +1441,101 @@ span.predictor-coming-soon {
 .bw-minus { color: #2563eb; font-weight: 600; }
 .bw-zero { color: var(--text-muted); }
 
-.col-past {
-  display: flex;
-  gap: 3px;
-  align-items: center;
-  justify-content: center;
+/* ─── 馬情報統合セル ─── */
+.horse-info-cell {
+  text-align: left !important;
+  white-space: normal !important;
+  min-width: 160px;
+  padding: 8px 10px !important;
+  line-height: 1.5;
+}
+.horse-info-name {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--text);
+  display: block;
+}
+.horse-info-detail {
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  display: block;
+  line-height: 1.4;
+}
+.horse-info-odds {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  display: block;
+  margin-top: 2px;
+}
+.horse-info-odds strong {
+  color: var(--text);
+  font-weight: 700;
 }
 
-.past-result {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 22px;
-  height: 20px;
+/* ─── 過去成績セル（netkeiba shutuba_past 風） ─── */
+.past-cell {
+  min-width: 140px;
+  max-width: 160px;
+  padding: 6px 8px !important;
+  vertical-align: top !important;
+  text-align: left !important;
+  white-space: normal !important;
+  font-size: 0.7rem;
+  line-height: 1.45;
+  border-left: 1px solid var(--table-border);
+}
+.past-cell.rank-1st {
+  background: #ffef84;
+  border-left: 3px solid #ccb834;
+}
+.past-cell.rank-2nd {
+  background: #d8f6ff;
+  border-left: 3px solid #6aacce;
+}
+.past-cell.rank-3rd {
+  background: #ffd4d4;
+  border-left: 3px solid #ff9494;
+}
+.past-cell-empty {
+  min-width: 140px;
+  color: var(--text-muted);
+  text-align: center !important;
+  vertical-align: middle !important;
+  font-size: 0.75rem;
+}
+.past-data-row {
+  display: block;
+}
+.past-date {
+  color: var(--text-muted);
   font-size: 0.68rem;
-  font-weight: 700;
-  border-radius: 3px;
-  background: var(--surface);
+}
+.past-race-name {
+  font-weight: 600;
+  color: var(--text);
+  font-size: 0.72rem;
+}
+.past-course {
   color: var(--text-secondary);
 }
-
-.past-result.past-1st {
-  background: linear-gradient(135deg, #f0c040, #e6b422);
-  color: #fff;
+.past-detail {
+  color: var(--text-secondary);
 }
-
-.past-result.past-2nd {
-  background: #2563eb;
-  color: #fff;
+.past-result-line {
+  font-weight: 700;
+  font-size: 0.75rem;
+  color: var(--text);
 }
-
-.past-result.past-3rd {
-  background: #cd7f32;
-  color: #fff;
+.past-result-line .past-rank-num {
+  font-size: 0.82rem;
 }
-
-.past-result.past-null {
-  background: var(--border);
+.past-margin {
   color: var(--text-muted);
+  font-size: 0.68rem;
+}
+.past-weight {
+  color: var(--text-muted);
+  font-size: 0.68rem;
 }
 
 /* ─── Result table new columns ─── */
@@ -2100,66 +2156,7 @@ span.predictor-coming-soon {
   filter: none;
 }
 
-/* ===================================================
-   近走ポップアップ
-   =================================================== */
-.past-popup-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.3);
-  z-index: 1100;
-}
-.past-popup {
-  position: absolute;
-  z-index: 1101;
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  box-shadow: 0 8px 32px rgba(0,0,0,0.15);
-  width: 360px;
-  max-width: calc(100vw - 20px);
-  padding: 0;
-  overflow: hidden;
-}
-.past-popup-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px 14px;
-  background: var(--table-header-bg);
-  color: var(--table-header-text);
-}
-.past-popup-title {
-  font-weight: 700;
-  font-size: 0.85rem;
-}
-.past-popup-close {
-  cursor: pointer;
-  font-size: 1.2rem;
-  line-height: 1;
-  opacity: 0.8;
-}
-.past-popup-close:hover { opacity: 1; }
-.past-popup-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 0.78rem;
-}
-.past-popup-table th {
-  background: var(--surface);
-  padding: 5px 8px;
-  font-weight: 700;
-  color: var(--text-secondary);
-  text-align: left;
-  white-space: nowrap;
-  width: 60px;
-  border: 1px solid var(--border);
-}
-.past-popup-table td {
-  padding: 5px 8px;
-  border: 1px solid var(--border);
-  color: var(--text);
-}
+/* (近走ポップアップ: 削除済み — shutuba_past 風セル表示に移行) */
 
 /* ===================================================
    レースラップ

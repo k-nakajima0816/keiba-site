@@ -136,21 +136,48 @@ function formatBodyWeight(bw) {
   return `<span class="col-bodyweight">${weight}<span class="${cls}">(${sign}${delta})</span></span>`;
 }
 
-/** 直近5走を小バッジで色分け表示（オブジェクト配列 or 数値配列に対応） */
-function formatPastResults(results, horseIdx) {
-  if (!results || !results.length) return '';
-  return '<div class="col-past">' + results.map((r, idx) => {
-    // オブジェクトの場合は rank を取得
-    const rank = (r !== null && typeof r === 'object') ? r.rank : r;
-    if (rank === null || rank === undefined) return '<span class="past-result past-null">-</span>';
-    let cls = '';
-    if (rank === 1) cls = 'past-1st';
-    else if (rank === 2) cls = 'past-2nd';
-    else if (rank === 3) cls = 'past-3rd';
-    const hasDetail = (r !== null && typeof r === 'object');
-    const dataAttr = hasDetail ? ` data-past-idx="${idx}" data-horse-idx="${horseIdx}" style="cursor:pointer"` : '';
-    return `<span class="past-result ${cls}"${dataAttr}>${rank}</span>`;
-  }).join('') + '</div>';
+/** 着順に応じたCSSクラスを返す */
+function pastRankClass(rank) {
+  if (rank === 1) return 'rank-1st';
+  if (rank === 2) return 'rank-2nd';
+  if (rank === 3) return 'rank-3rd';
+  return '';
+}
+
+/** 日付文字列を "YYYY.MM.DD 曜" 形式にフォーマット */
+function formatPastDate(dateStr) {
+  if (!dateStr) return '';
+  const d = new Date(dateStr);
+  if (isNaN(d)) return dateStr;
+  const days = ['日','月','火','水','木','金','土'];
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  const dow = days[d.getDay()];
+  return `${y}.${m}.${day} ${dow}`;
+}
+
+/** 1走分の過去成績をnetkeiba shutuba_past風のHTMLで返す */
+function formatPastCell(p) {
+  if (!p || typeof p !== 'object') return '<td class="past-cell-empty mobile-hide">-</td>';
+  const rankCls = pastRankClass(p.rank);
+  const rankDisplay = p.rank != null ? p.rank : '-';
+  const popText = p.popularity != null ? `(${p.popularity}人気)` : '';
+  const timeStr = p.time || '';
+  const last3f = p.last3f ? ` 上${p.last3f}` : '';
+  const marginStr = p.margin ? `着差${p.margin}` : '';
+  const passing = p.passingOrder ? ` 通過${p.passingOrder}` : '';
+  const bw = p.bodyWeight || '';
+
+  return `<td class="past-cell mobile-hide ${rankCls}">
+    <span class="past-data-row past-date">${formatPastDate(p.date)}</span>
+    <span class="past-data-row past-race-name">${p.class || ''}</span>
+    <span class="past-data-row past-course">${p.distance || ''} ${p.condition || ''}</span>
+    <span class="past-data-row past-detail">${p.fieldSize || ''}頭 ${p.venue || ''} ${p.jockey || ''} ${p.weight || ''}</span>
+    <span class="past-data-row past-result-line"><span class="past-rank-num">${rankDisplay}着</span>${popText} ${timeStr}${last3f}</span>
+    <span class="past-data-row past-margin">${marginStr}${passing}</span>
+    <span class="past-data-row past-weight">馬体重 ${bw}</span>
+  </td>`;
 }
 
 /** ISO時刻を相対時間に変換（「3分前」「1時間前」形式） */
@@ -497,18 +524,13 @@ async function renderRaceDetail() {
   const isLoggedIn = !!Auth.current();
   const isPremiumLocked = currentHour >= 13 && !isLoggedIn;
 
-  // 出馬表テーブル — 設計書カラム順: 枠|馬番|MY印|馬名|性齢|斤量|騎手|厩舎|馬体重|オッズ|近走|予測勝率|逃げ馬指数
+  // 出馬表テーブル — netkeiba shutuba_past 風: 枠|馬番|MY印|馬情報|予測勝率|逃げ馬指数|1走前〜5走前
   html += '<div class="entries-table-wrapper"><table class="entries-table"><thead><tr>';
-  html += '<th>枠</th><th>馬番</th><th class="th-my-mark">MY印</th><th class="col-horse">馬名</th><th>性齢</th><th>斤量</th><th>騎手</th>';
-  html += '<th class="mobile-hide">厩舎</th><th class="mobile-hide">馬体重</th>';
-  html += '<th>オッズ</th>';
-  html += '<th class="mobile-hide">近走</th>';
+  html += '<th>枠</th><th>馬番</th><th class="th-my-mark">MY印</th><th class="col-horse">馬情報</th>';
   html += `<th class="mobile-hide">予測勝率${isPremiumLocked ? '' : ' <span class="free-badge">FREE</span>'}</th>`;
   html += `<th class="mobile-hide">逃げ馬指数${isPremiumLocked ? '' : ' <span class="free-badge">FREE</span>'}</th>`;
+  html += '<th class="mobile-hide">1走前</th><th class="mobile-hide">2走前</th><th class="mobile-hide">3走前</th><th class="mobile-hide">4走前</th><th class="mobile-hide">5走前</th>';
   html += '</tr></thead><tbody>';
-
-  // 近走データをポップアップ用に保持
-  const allPastResults = [];
 
   // 各馬の行
   for (let ei = 0; ei < race.entries.length; ei++) {
@@ -520,30 +542,24 @@ async function renderRaceDetail() {
     const wakuNum = getWakuNumber(entry.number, totalHorses);
     const waku = WAKU_COLORS[wakuNum - 1];
 
-    // 近走データ保持
-    allPastResults.push(entry.pastResults || []);
-
     html += '<tr>';
     // 枠番
     html += `<td><span class="waku-badge" style="background:${waku.bg};color:${waku.text};border:1px solid ${waku.border}">${wakuNum}</span></td>`;
     // 馬番
     html += `<td><span class="horse-num" style="border-left:3px solid ${waku.bg === '#ffffff' ? waku.border : waku.bg}">${entry.number}</span></td>`;
-    // MY印（馬名の左）
+    // MY印
     html += `<td class="my-mark-cell ${myMarkClass}" data-race="${raceId}" data-num="${entry.number}">${myMark}</td>`;
-    // 馬名
-    html += `<td class="col-horse">${entry.name}</td>`;
-    // 性齢
-    html += `<td class="col-sexage">${entry.sex || ''}${entry.age || ''}</td>`;
-    html += `<td>${entry.weight}</td>`;
-    html += `<td>${entry.jockey}</td>`;
-    // 厩舎（モバイル非表示）
-    html += `<td class="col-trainer mobile-hide">${entry.trainer || ''}</td>`;
-    // 馬体重（モバイル非表示）
-    html += `<td class="mobile-hide">${formatBodyWeight(entry.bodyWeight)}</td>`;
-    // オッズ
-    html += `<td class="odds-val">${entry.odds != null ? entry.odds.toFixed(1) : ''}</td>`;
-    // 近走（モバイル非表示）
-    html += `<td class="mobile-hide">${formatPastResults(entry.pastResults, ei)}</td>`;
+
+    // 馬情報（統合セル）
+    const oddsStr = entry.odds != null ? entry.odds.toFixed(1) : '';
+    const popStr = entry.popularity != null ? `${entry.popularity}番人気` : '';
+    html += `<td class="horse-info-cell">
+      <span class="horse-info-name">${entry.name}</span>
+      <span class="horse-info-detail">${entry.sex || ''}${entry.age || ''} / ${entry.weight}kg</span>
+      <span class="horse-info-detail">${entry.jockey} / ${entry.trainer || ''}</span>
+      <span class="horse-info-detail">馬体重 ${formatBodyWeight(entry.bodyWeight)}</span>
+      <span class="horse-info-odds">単勝 <strong>${oddsStr}倍</strong> | ${popStr}</span>
+    </td>`;
 
     // 予測勝率
     const winRate = calcWinRate(raceId, entry.number);
@@ -563,14 +579,20 @@ async function renderRaceDetail() {
       html += `<td class="ten-index mobile-hide ${tenCls}">${tenVal.toFixed(1)}</td>`;
     }
 
+    // 過去5走（各走ごとに1カラム）
+    const pastResults = entry.pastResults || [];
+    for (let pi = 0; pi < 5; pi++) {
+      if (pi < pastResults.length && pastResults[pi]) {
+        html += formatPastCell(pastResults[pi]);
+      } else {
+        html += '<td class="past-cell-empty mobile-hide">-</td>';
+      }
+    }
+
     html += '</tr>';
   }
 
   html += '</tbody></table></div>';
-
-  // 近走ポップアップオーバーレイ（非表示、JSで制御）
-  html += '<div class="past-popup-overlay" id="pastPopupOverlay" style="display:none"></div>';
-  html += '<div class="past-popup" id="pastPopup" style="display:none"></div>';
 
   // 的中速報バナーリンク
   html += `<a href="hits.html" class="hits-banner-link">🎯 的中速報を見る</a>`;
@@ -632,58 +654,6 @@ async function renderRaceDetail() {
     });
   });
 
-  // 近走バッジクリックでポップアップ表示
-  qsa('.past-result[data-past-idx]').forEach(badge => {
-    badge.addEventListener('click', function(e) {
-      e.stopPropagation();
-      const pastIdx = parseInt(this.dataset.pastIdx);
-      const horseIdx = parseInt(this.dataset.horseIdx);
-      const pastData = allPastResults[horseIdx];
-      if (!pastData || !pastData[pastIdx]) return;
-      const p = pastData[pastIdx];
-      if (typeof p !== 'object') return;
-
-      const popup = qs('#pastPopup');
-      const overlay = qs('#pastPopupOverlay');
-      popup.innerHTML = `
-        <div class="past-popup-header">
-          <span class="past-popup-title">${p.raceName || p.class || ''}</span>
-          <span class="past-popup-close" id="pastPopupClose">&times;</span>
-        </div>
-        <table class="past-popup-table">
-          <tr><th>日付</th><td>${p.date || ''}</td><th>競馬場</th><td>${p.venue || ''}</td></tr>
-          <tr><th>距離</th><td>${p.distance || ''}</td><th>馬場</th><td>${p.condition || ''}</td></tr>
-          <tr><th>クラス</th><td>${p.class || ''}</td><th>レース名</th><td>${p.raceName || ''}</td></tr>
-          <tr><th>着順</th><td><strong>${p.rank || ''}</strong>/${p.fieldSize || ''}頭</td><th>人気</th><td>${p.popularity || ''}人気</td></tr>
-          <tr><th>タイム</th><td>${p.time || ''}</td><th>上り</th><td>${p.last3f || ''}</td></tr>
-          <tr><th>着差</th><td>${p.margin || ''}</td><th>通過順</th><td>${p.passingOrder || ''}</td></tr>
-          <tr><th>騎手</th><td>${p.jockey || ''}</td><th>斤量</th><td>${p.weight || ''}</td></tr>
-          <tr><th>馬体重</th><td>${p.bodyWeight || ''}</td><th>間隔</th><td>${p.interval || ''}</td></tr>
-          <tr><th>父</th><td>${p.sireName || ''}</td><th>母父</th><td>${p.damSireName || ''}</td></tr>
-          <tr><th>馬主</th><td>${p.owner || ''}</td><th>生産者</th><td>${p.breeder || ''}</td></tr>
-        </table>
-      `;
-      popup.style.display = 'block';
-      overlay.style.display = 'block';
-
-      // ポップアップを badge の近くに配置
-      const rect = badge.getBoundingClientRect();
-      popup.style.top = (window.scrollY + rect.bottom + 8) + 'px';
-      popup.style.left = Math.max(10, Math.min(rect.left, window.innerWidth - 380)) + 'px';
-
-      qs('#pastPopupClose').addEventListener('click', closePastPopup);
-    });
-  });
-
-  function closePastPopup() {
-    const popup = qs('#pastPopup');
-    const overlay = qs('#pastPopupOverlay');
-    if (popup) popup.style.display = 'none';
-    if (overlay) overlay.style.display = 'none';
-  }
-
-  const overlayEl = qs('#pastPopupOverlay');
-  if (overlayEl) overlayEl.addEventListener('click', closePastPopup);
 }
 
 // ─── 予想家一覧ページ ───
