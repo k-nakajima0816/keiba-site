@@ -1,5 +1,5 @@
 /* ===================================================
-   UMAYOSE — app.js
+   FRONT RUNNER — app.js
    メインロジック（ナビ描画、認証、データ取得、描画）
    =================================================== */
 
@@ -27,10 +27,14 @@ function getBasePath() {
 }
 
 async function fetchJSON(path) {
-  const base = getBasePath();
-  const res = await fetch(base + path);
-  if (!res.ok) return null;
-  return res.json();
+  try {
+    const base = getBasePath();
+    const res = await fetch(base + path);
+    if (!res.ok) return null;
+    return res.json();
+  } catch {
+    return null;
+  }
 }
 
 function qs(sel, parent) { return (parent || document).querySelector(sel); }
@@ -38,6 +42,35 @@ function qsa(sel, parent) { return (parent || document).querySelectorAll(sel); }
 
 function getParams() {
   return Object.fromEntries(new URLSearchParams(window.location.search));
+}
+
+// ─── 的中速報ティッカー共通ヘルパー ───
+function buildHitsTickerHTML(hitsData, predictors, options = {}) {
+  const { linkHref = 'hits.html', showFallback = true } = options;
+  if (!hitsData || !hitsData.hits || hitsData.hits.length === 0) {
+    return showFallback ? `<a href="${linkHref}" class="hits-banner-link">🎯 的中速報を見る</a>` : '';
+  }
+  const predictorMap = {};
+  if (predictors) predictors.forEach(p => predictorMap[p.id] = p);
+  let items = '';
+  for (const hit of hitsData.hits) {
+    const p = predictorMap[hit.predictorId];
+    const name = p ? p.name : hit.predictorId;
+    const color = p ? p.color : '#999';
+    const initial = name ? name[0] : '?';
+    items += `<span class="hits-ticker-item">
+      <span class="hits-ticker-avatar" style="background:${color}">${initial}</span>
+      <span>${name}</span>
+      <span class="hits-ticker-badge">${hit.hitLabel}</span>
+      <span class="hits-ticker-payout">¥${hit.payoutAmount.toLocaleString()}</span>
+    </span>`;
+  }
+  return `<div class="hits-ticker-wrapper">
+    <a href="${linkHref}" class="hits-ticker-label">🎯 的中速報</a>
+    <div class="hits-ticker-track">
+      <div class="hits-ticker-scroll">${items}${items}</div>
+    </div>
+  </div>`;
 }
 
 /**
@@ -224,8 +257,8 @@ function renderNav() {
   nav.innerHTML = `
     <div class="container nav-container">
       <a href="index.html" class="logo">
-        <span class="logo-icon"><img src="assets/logo.svg" alt="UMAYOSE"></span>
-        <span class="logo-text">UMAYOSE</span>
+        <span class="logo-icon"><img src="assets/logo.svg" alt="FRONT RUNNER"></span>
+        <span class="logo-text">FRONT RUNNER</span>
       </a>
       <nav class="nav-links" id="navLinks">
         <a href="index.html" class="${activeClass('index.html')}">レース一覧</a>
@@ -254,10 +287,10 @@ function renderFooter() {
       <div class="footer-brand">
         <span class="logo">
           <span class="logo-icon"><img src="assets/logo.svg" alt="" style="width:24px;height:24px;"></span>
-          <span class="logo-text" style="font-size:0.9rem;">UMAYOSE</span>
+          <span class="logo-text" style="font-size:0.9rem;">FRONT RUNNER</span>
         </span>
       </div>
-      <span class="footer-copy">&copy; 2026 UMAYOSE. All rights reserved.</span>
+      <span class="footer-copy">&copy; 2026 FRONT RUNNER. All rights reserved.</span>
     </div>
   `;
 }
@@ -273,7 +306,10 @@ async function renderRaceList() {
   let data = await fetchJSON(`data/races/${today}.json`);
   if (!data) data = await fetchJSON('data/races/2026-02-16.json');
 
-  const predictors = await fetchJSON('data/predictors.json');
+  const [predictors, hitsData] = await Promise.all([
+    fetchJSON('data/predictors.json'),
+    fetchJSON('data/hits.json')
+  ]);
 
   if (!data || !data.venues) {
     main.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🏇</div>本日のレースデータがありません</div>';
@@ -299,6 +335,9 @@ async function renderRaceList() {
       </h1>
     </div>
   `;
+
+  // 的中速報ティッカー
+  html += buildHitsTickerHTML(hitsData, predictors);
 
   // 重賞バナー（あれば）
   if (gradeRaces.length > 0) {
@@ -365,7 +404,7 @@ async function renderRaceList() {
   // 予想家セクション
   if (predictors && predictors.length > 0) {
     html += '<div class="top-predictors-section">';
-    html += '<div class="top-section-title">UMAYOSE厳選予想家</div>';
+    html += '<div class="top-section-title">FRONT RUNNER 厳選予想家</div>';
     html += '<div class="top-predictor-grid">';
     for (const p of predictors) {
       const initial = p.name ? p.name[0] : '?';
@@ -393,7 +432,7 @@ async function renderRaceList() {
   // FRONT RUNNER コラムセクション（ダミー）
   const columns = [
     { title: '春のG1シーズン到来！注目はやはりあの馬', excerpt: '今年の春競馬の主役となりそうな馬たちを徹底分析。クラシック路線と古馬路線、それぞれの見どころを解説します。', date: '2026-02-15', emoji: '🏆' },
-    { title: 'AI予想の的中率を検証してみた', excerpt: 'UMAYOSEの予想家陣のAI予想、実際の的中率はどれくらい？過去3ヶ月のデータを徹底検証。', date: '2026-02-13', emoji: '🤖' },
+    { title: 'AI予想の的中率を検証してみた', excerpt: 'FRONT RUNNERの予想家陣のAI予想、実際の的中率はどれくらい？過去3ヶ月のデータを徹底検証。', date: '2026-02-13', emoji: '🤖' },
     { title: '初心者向け：競馬の印の読み方ガイド', excerpt: '◎○▲△って何？初心者にもわかりやすく、競馬の印（しるし）の意味と活用法を解説します。', date: '2026-02-10', emoji: '📖' }
   ];
   html += '<div class="column-section">';
@@ -493,10 +532,11 @@ async function renderRaceDetail() {
     return;
   }
 
-  // 予想家データ + 予想データ取得（購入リンク用）
-  const [predictors, racePredData] = await Promise.all([
+  // 予想家データ + 予想データ + 的中速報取得
+  const [predictors, racePredData, hitsData] = await Promise.all([
     fetchJSON('data/predictors.json'),
-    fetchJSON(`data/predictions/${raceId}.json`)
+    fetchJSON(`data/predictions/${raceId}.json`),
+    fetchJSON('data/hits.json')
   ]);
 
   const totalHorses = race.horseCount;
@@ -594,8 +634,8 @@ async function renderRaceDetail() {
 
   html += '</tbody></table></div>';
 
-  // 的中速報バナーリンク
-  html += `<a href="hits.html" class="hits-banner-link">🎯 的中速報を見る</a>`;
+  // 的中速報ティッカーバナー
+  html += buildHitsTickerHTML(hitsData, predictors);
 
   // 購入リンク（予想がある予想家はレース別リンク）
   if (predictors && predictors.length > 0) {
@@ -661,7 +701,10 @@ async function renderPredictors() {
 
   main.innerHTML = '<div class="loading">予想家データを読み込み中…</div>';
 
-  const predictors = await fetchJSON('data/predictors.json');
+  const [predictors, hitsData] = await Promise.all([
+    fetchJSON('data/predictors.json'),
+    fetchJSON('data/hits.json')
+  ]);
 
   if (!predictors || predictors.length === 0) {
     main.innerHTML = '<div class="empty-state"><div class="empty-state-icon">👤</div>予想家データがありません</div>';
@@ -671,10 +714,14 @@ async function renderPredictors() {
   let html = `
     <div class="page-header">
       <h1 class="page-title">👑 予想家一覧</h1>
-      <p class="page-subtitle">UMAYOSEが厳選した${predictors.length}名の予想家</p>
+      <p class="page-subtitle">FRONT RUNNERが厳選した${predictors.length}名の予想家</p>
     </div>
-    <div class="predictors-grid">
   `;
+
+  // 的中速報ティッカー
+  html += buildHitsTickerHTML(hitsData, predictors);
+
+  html += '<div class="predictors-grid">';
 
   for (const p of predictors) {
     const initial = p.name[0];
@@ -721,6 +768,11 @@ async function renderResultsOverview() {
   let resultsData = await fetchJSON(`data/results/${today}.json`);
   if (!resultsData) resultsData = await fetchJSON('data/results/2026-02-16.json');
 
+  const [predictors, hitsData] = await Promise.all([
+    fetchJSON('data/predictors.json'),
+    fetchJSON('data/hits.json')
+  ]);
+
   const resultsMap = {};
   if (resultsData && resultsData.results) {
     for (const r of resultsData.results) resultsMap[r.raceId] = r;
@@ -736,6 +788,9 @@ async function renderResultsOverview() {
       </h1>
     </div>
   `;
+
+  // 的中速報ティッカー
+  html += buildHitsTickerHTML(hitsData, predictors);
 
   if (!dayData || !dayData.venues) {
     html += '<div class="empty-state"><div class="empty-state-icon">📡</div>本日のレースデータがありません</div>';
@@ -814,10 +869,11 @@ async function renderResultDetail(raceId, dateStr) {
   let resultsData = await fetchJSON(`data/results/${dateStr}.json`);
   if (!resultsData) resultsData = await fetchJSON('data/results/2026-02-16.json');
 
-  // 予想家データ＋予想データを並行取得
-  const [predictors, predData] = await Promise.all([
+  // 予想家データ＋予想データ＋的中速報を並行取得
+  const [predictors, predData, hitsData] = await Promise.all([
     fetchJSON('data/predictors.json'),
-    fetchJSON(`data/predictions/${raceId}.json`)
+    fetchJSON(`data/predictions/${raceId}.json`),
+    fetchJSON('data/hits.json')
   ]);
 
   const predictorMap = {};
@@ -861,6 +917,9 @@ async function renderResultDetail(raceId, dateStr) {
       <a href="race.html?id=${raceId}&date=${dateStr}" class="result-link-btn">📋 出馬表を見る</a>
     </div>
   `;
+
+  // 的中速報ティッカー
+  html += buildHitsTickerHTML(hitsData, predictors);
 
   // 予想家の印マップ構築（馬番 → [{predictorName, mark}]）
   const horseMarksMap = {}; // number -> [{name, mark}]
@@ -1069,8 +1128,8 @@ async function renderResultDetail(raceId, dateStr) {
       if (mk) shareLines.push(`${mk}${p.name} → ${p.rank}着`);
     }
     const shareText = shareLines.length > 0
-      ? `【UMAYOSE】${race.name}\n${shareLines.join('\n')}\n#UMAYOSE #競馬`
-      : `【UMAYOSE】${race.name} 結果\n1着: ${top3Placings[0]?.name || ''}\n2着: ${top3Placings[1]?.name || ''}\n3着: ${top3Placings[2]?.name || ''}\n#UMAYOSE #競馬`;
+      ? `【FRONT RUNNER】${race.name}\n${shareLines.join('\n')}\n#FRONTRUNNER #競馬`
+      : `【FRONT RUNNER】${race.name} 結果\n1着: ${top3Placings[0]?.name || ''}\n2着: ${top3Placings[1]?.name || ''}\n3着: ${top3Placings[2]?.name || ''}\n#FRONTRUNNER #競馬`;
     const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}`;
     html += '<div class="sns-share-section">';
     html += `<a href="${twitterUrl}" target="_blank" rel="noopener" class="sns-share-btn sns-share-btn-x">𝕏 結果をシェア</a>`;
@@ -1128,6 +1187,11 @@ async function renderHitsBoard() {
 
   const hits = hitsData.hits;
 
+  // サマリー計算
+  const totalHits = hits.length;
+  const totalPayout = hits.reduce((sum, h) => sum + h.payoutAmount, 0);
+  const maxPayout = Math.max(...hits.map(h => h.payoutAmount));
+
   // フィルター用データ収集
   const hitTypes = [...new Set(hits.map(h => h.hitType))];
   const hitPredictors = [...new Set(hits.map(h => h.predictorId))];
@@ -1141,6 +1205,29 @@ async function renderHitsBoard() {
     <div class="page-header hits-header">
       <h1 class="page-title">🎯 的中速報</h1>
       <p class="page-subtitle">予想家の的中情報をリアルタイムで配信</p>
+    </div>
+  `;
+
+  // 的中速報ティッカー（データなし時は非表示）
+  html += buildHitsTickerHTML(hitsData, predictors, { showFallback: false });
+
+  html += `
+    <div class="hits-summary">
+      <div class="hits-summary-card">
+        <div class="hits-summary-value hits-summary-count">${totalHits}</div>
+        <div class="hits-summary-label">的中件数</div>
+      </div>
+      <div class="hits-summary-card">
+        <div class="hits-summary-value hits-summary-payout">¥${totalPayout.toLocaleString()}</div>
+        <div class="hits-summary-label">総払戻金額</div>
+      </div>
+      <div class="hits-summary-card">
+        <div class="hits-summary-value hits-summary-max">¥${maxPayout.toLocaleString()}</div>
+        <div class="hits-summary-label">最高額的中</div>
+      </div>
+    </div>
+
+    <div class="hits-filter-section">
       <div class="hits-filters">
         <button class="hit-filter-btn active" data-filter="all" data-group="type">すべて</button>
   `;
@@ -1162,7 +1249,7 @@ async function renderHitsBoard() {
   }
   html += '</div></div>';
 
-  // タイムライン
+  // タイムライン（グリッド）
   html += '<div class="hits-timeline" id="hitsTimeline">';
 
   for (const hit of hits) {
@@ -1170,6 +1257,7 @@ async function renderHitsBoard() {
     const name = p ? p.name : hit.predictorId;
     const color = p ? p.color : '#999';
     const initial = name ? name[0] : '?';
+    const profileUrl = p ? p.profileUrl : '#';
     const isJackpot = hit.payoutAmount >= 10000;
     const cardClass = isJackpot ? 'hit-card hit-card-jackpot' : 'hit-card';
     const payoutClass = isJackpot ? 'hit-card-payout hit-card-payout-jackpot' : 'hit-card-payout';
@@ -1178,6 +1266,10 @@ async function renderHitsBoard() {
     const horseDisplay = hit.hitHorseNumber
       ? `<span class="horse-num" style="margin-right:6px">${hit.hitHorseNumber}</span>${hit.hitHorseName}`
       : hit.hitHorseName;
+
+    // 日付フォーマット
+    const hitDate = new Date(hit.timestamp);
+    const dateStr = `${hitDate.getFullYear()}/${hitDate.getMonth() + 1}/${hitDate.getDate()}`;
 
     html += `
       <div class="${cardClass}" data-type="${hit.hitType}" data-predictor="${hit.predictorId}">
@@ -1188,7 +1280,7 @@ async function renderHitsBoard() {
             <span class="hit-mark-badge" data-type="${hit.hitType}">${hit.hitLabel}</span>
           </div>
           <div class="hit-card-race">
-            ${gradeTag}${hit.venue} ${hit.raceNumber}R ${hit.raceName}
+            ${gradeTag}${dateStr} ${hit.venue} ${hit.raceNumber}R ${hit.raceName}
           </div>
           <div class="hit-card-result">
             <span class="hit-card-horse">${horseDisplay}</span>
@@ -1196,6 +1288,7 @@ async function renderHitsBoard() {
           </div>
           <div class="hit-card-footer">
             <span class="hit-card-time">${relativeTime(hit.timestamp)}</span>
+            <a href="${profileUrl}" target="_blank" rel="noopener" class="hit-card-link">予想を見る →</a>
           </div>
         </div>
       </div>
