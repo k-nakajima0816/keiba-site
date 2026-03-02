@@ -528,7 +528,7 @@ async function renderRaceDetail() {
   html += '<div class="entries-table-wrapper"><table class="entries-table"><thead><tr>';
   html += '<th class="sticky-col col-waku">枠</th><th class="sticky-col col-umaban">馬番</th><th class="th-my-mark">MY印</th><th class="col-horse">馬情報</th>';
   html += `<th>予測勝率${isPremiumLocked ? '' : ' <span class="free-badge">FREE</span>'}</th>`;
-  html += `<th>逃げ馬指数${isPremiumLocked ? '' : ' <span class="free-badge">FREE</span>'}</th>`;
+  html += `<th class="col-ten-index">逃げ馬指数${isPremiumLocked ? '' : ' <span class="free-badge">FREE</span>'}</th>`;
   html += '<th>1走前</th><th>2走前</th><th>3走前</th><th>4走前</th><th>5走前</th>';
   html += '</tr></thead><tbody>';
 

@@ -2038,6 +2038,7 @@ span.predictor-coming-soon {
   .winrate-cell, .ten-index { font-size: 0.7rem; }
   .waku-badge { width: 22px; height: 22px; font-size: 0.68rem; }
   .horse-num { width: 24px; height: 24px; font-size: 0.72rem; }
+  .col-ten-index, td.ten-index { display: none; }
 
   .venue-tabs {
     overflow-x: auto;
