@@ -594,6 +594,28 @@ img { max-width: 100%; display: block; }
   border-bottom: none;
 }
 
+/* sticky 枠+馬番 */
+.sticky-col {
+  position: sticky;
+  z-index: 1;
+  background: var(--bg-card);
+}
+.entries-table thead .sticky-col {
+  background: var(--surface);
+  z-index: 3;
+}
+.col-waku { left: 0; min-width: 36px; max-width: 36px; }
+.col-umaban { left: 36px; min-width: 36px; max-width: 36px; }
+.entries-table tbody tr:nth-child(even) .sticky-col { background: #f8f8fc; }
+.entries-table tbody tr:hover .sticky-col { background: var(--table-row-hover); }
+.col-umaban::after {
+  content: '';
+  position: absolute;
+  top: 0; right: -4px; bottom: 0; width: 4px;
+  background: linear-gradient(to right, rgba(0,0,0,0.06), transparent);
+  pointer-events: none;
+}
+
 /* 枠番バッジ */
 .waku-badge {
   display: inline-flex;
@@ -1997,9 +2019,25 @@ span.predictor-coming-soon {
     grid-template-columns: repeat(2, 1fr);
   }
 
-  .entries-table {
-    font-size: 0.8rem;
+  /* 出馬表: 横スクロールテーブル */
+  .entries-table-wrapper {
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+    margin-left: calc(-1 * var(--container-px));
+    margin-right: calc(-1 * var(--container-px));
   }
+  .entries-table { min-width: 900px; font-size: 0.72rem; }
+  .entries-table th { padding: 6px 4px; font-size: 0.65rem; }
+  .entries-table td { padding: 6px 4px; }
+  .horse-info-cell { min-width: 120px; padding: 4px 6px !important; }
+  .horse-info-name { font-size: 0.78rem; }
+  .horse-info-detail, .horse-info-odds { font-size: 0.62rem; }
+  .past-cell { min-width: 100px; max-width: 120px; font-size: 0.6rem; }
+  .past-cell-empty { min-width: 100px; }
+  .winrate-cell, .ten-index { font-size: 0.7rem; }
+  .waku-badge { width: 22px; height: 22px; font-size: 0.68rem; }
+  .horse-num { width: 24px; height: 24px; font-size: 0.72rem; }
 
   .venue-tabs {
     overflow-x: auto;

@@ -159,7 +159,7 @@ function formatPastDate(dateStr) {
 
 /** 1走分の過去成績をnetkeiba shutuba_past風のHTMLで返す */
 function formatPastCell(p) {
-  if (!p || typeof p !== 'object') return '<td class="past-cell-empty mobile-hide">-</td>';
+  if (!p || typeof p !== 'object') return '<td class="past-cell-empty">-</td>';
   const rankCls = pastRankClass(p.rank);
   const rankDisplay = p.rank != null ? p.rank : '-';
   const popText = p.popularity != null ? `(${p.popularity}人気)` : '';
@@ -169,7 +169,7 @@ function formatPastCell(p) {
   const passing = p.passingOrder ? ` 通過${p.passingOrder}` : '';
   const bw = p.bodyWeight || '';
 
-  return `<td class="past-cell mobile-hide ${rankCls}">
+  return `<td class="past-cell ${rankCls}">
     <span class="past-data-row past-date">${formatPastDate(p.date)}</span>
     <span class="past-data-row past-race-name">${p.class || ''}</span>
     <span class="past-data-row past-course">${p.distance || ''} ${p.condition || ''}</span>
@@ -526,10 +526,10 @@ async function renderRaceDetail() {
 
   // 出馬表テーブル — netkeiba shutuba_past 風: 枠|馬番|MY印|馬情報|予測勝率|逃げ馬指数|1走前〜5走前
   html += '<div class="entries-table-wrapper"><table class="entries-table"><thead><tr>';
-  html += '<th>枠</th><th>馬番</th><th class="th-my-mark">MY印</th><th class="col-horse">馬情報</th>';
-  html += `<th class="mobile-hide">予測勝率${isPremiumLocked ? '' : ' <span class="free-badge">FREE</span>'}</th>`;
-  html += `<th class="mobile-hide">逃げ馬指数${isPremiumLocked ? '' : ' <span class="free-badge">FREE</span>'}</th>`;
-  html += '<th class="mobile-hide">1走前</th><th class="mobile-hide">2走前</th><th class="mobile-hide">3走前</th><th class="mobile-hide">4走前</th><th class="mobile-hide">5走前</th>';
+  html += '<th class="sticky-col col-waku">枠</th><th class="sticky-col col-umaban">馬番</th><th class="th-my-mark">MY印</th><th class="col-horse">馬情報</th>';
+  html += `<th>予測勝率${isPremiumLocked ? '' : ' <span class="free-badge">FREE</span>'}</th>`;
+  html += `<th>逃げ馬指数${isPremiumLocked ? '' : ' <span class="free-badge">FREE</span>'}</th>`;
+  html += '<th>1走前</th><th>2走前</th><th>3走前</th><th>4走前</th><th>5走前</th>';
   html += '</tr></thead><tbody>';
 
   // 各馬の行
@@ -544,9 +544,9 @@ async function renderRaceDetail() {
 
     html += '<tr>';
     // 枠番
-    html += `<td><span class="waku-badge" style="background:${waku.bg};color:${waku.text};border:1px solid ${waku.border}">${wakuNum}</span></td>`;
+    html += `<td class="sticky-col col-waku"><span class="waku-badge" style="background:${waku.bg};color:${waku.text};border:1px solid ${waku.border}">${wakuNum}</span></td>`;
     // 馬番
-    html += `<td><span class="horse-num" style="border-left:3px solid ${waku.bg === '#ffffff' ? waku.border : waku.bg}">${entry.number}</span></td>`;
+    html += `<td class="sticky-col col-umaban"><span class="horse-num" style="border-left:3px solid ${waku.bg === '#ffffff' ? waku.border : waku.bg}">${entry.number}</span></td>`;
     // MY印
     html += `<td class="my-mark-cell ${myMarkClass}" data-race="${raceId}" data-num="${entry.number}">${myMark}</td>`;
 
@@ -565,18 +565,18 @@ async function renderRaceDetail() {
     const winRate = calcWinRate(raceId, entry.number);
     const wrCls = winRateClass(winRate);
     if (isPremiumLocked) {
-      html += `<td class="mobile-hide"><div class="premium-overlay"><span class="premium-lock">有料会員限定</span></div></td>`;
+      html += `<td><div class="premium-overlay"><span class="premium-lock">有料会員限定</span></div></td>`;
     } else {
-      html += `<td class="mobile-hide winrate-cell ${wrCls}">${winRate.toFixed(1)}%</td>`;
+      html += `<td class="winrate-cell ${wrCls}">${winRate.toFixed(1)}%</td>`;
     }
 
     // 逃げ馬指数
     const tenVal = calcTenIndex(raceId, entry.number);
     const tenCls = tenIndexClass(tenVal);
     if (isPremiumLocked) {
-      html += `<td class="mobile-hide"><div class="premium-overlay"><span class="premium-lock">有料会員限定</span></div></td>`;
+      html += `<td><div class="premium-overlay"><span class="premium-lock">有料会員限定</span></div></td>`;
     } else {
-      html += `<td class="ten-index mobile-hide ${tenCls}">${tenVal.toFixed(1)}</td>`;
+      html += `<td class="ten-index ${tenCls}">${tenVal.toFixed(1)}</td>`;
     }
 
     // 過去5走（各走ごとに1カラム）
@@ -585,7 +585,7 @@ async function renderRaceDetail() {
       if (pi < pastResults.length && pastResults[pi]) {
         html += formatPastCell(pastResults[pi]);
       } else {
-        html += '<td class="past-cell-empty mobile-hide">-</td>';
+        html += '<td class="past-cell-empty">-</td>';
       }
     }
 
@@ -648,9 +648,7 @@ async function renderRaceDetail() {
       const newMark = MyMarks.toggle(rid, parseInt(num));
       this.textContent = newMark;
       this.className = 'my-mark-cell';
-      if (newMark && MARK_CLASSES[newMark]) {
-        this.classList.add(MARK_CLASSES[newMark]);
-      }
+      if (newMark && MARK_CLASSES[newMark]) this.classList.add(MARK_CLASSES[newMark]);
     });
   });
 
