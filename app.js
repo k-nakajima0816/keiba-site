@@ -574,7 +574,7 @@ async function renderRaceDetail() {
     const tenVal = calcTenIndex(raceId, entry.number);
     const tenCls = tenIndexClass(tenVal);
     if (isPremiumLocked) {
-      html += `<td><div class="premium-overlay"><span class="premium-lock">有料会員限定</span></div></td>`;
+      html += `<td class="ten-index"><div class="premium-overlay"><span class="premium-lock">有料会員限定</span></div></td>`;
     } else {
       html += `<td class="ten-index ${tenCls}">${tenVal.toFixed(1)}</td>`;
     }
