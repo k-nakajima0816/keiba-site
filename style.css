@@ -2758,10 +2758,36 @@ span.predictor-coming-soon {
     border-top: 1px solid #eee;
     font-size: 0.8rem;
   }
-  .entry-card-past {
-    font-size: 0.7rem;
-    color: #888;
-    padding-top: 6px;
+  .entry-card-past-toggle {
+    font-size: 0.75rem;
+    color: #007bff;
+    padding: 6px 0 0;
     border-top: 1px solid #eee;
+    cursor: pointer;
+    text-align: center;
+  }
+  .entry-card-past-detail {
+    padding-top: 6px;
+  }
+  .past-run {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    padding: 3px 0;
+    font-size: 0.72rem;
+    border-bottom: 1px solid #f5f5f5;
+  }
+  .past-run:last-child { border-bottom: none; }
+  .past-run.rank-1st .past-run-rank { color: #b8860b; font-weight: 700; }
+  .past-run.rank-2nd .past-run-rank { color: #4a8db7; font-weight: 700; }
+  .past-run.rank-3rd .past-run-rank { color: #c06060; font-weight: 700; }
+  .past-run-rank {
+    min-width: 32px;
+    font-weight: 600;
+    text-align: right;
+  }
+  .past-run-info {
+    color: #666;
+    flex: 1;
   }
 }

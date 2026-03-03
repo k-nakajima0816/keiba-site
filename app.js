@@ -559,16 +559,11 @@ async function renderRaceDetail() {
     </div>
   `;
 
-  // 午前/午後判定（13時以降は有料コンテンツをロック）
-  const currentHour = new Date().getHours();
-  const isLoggedIn = !!Auth.current();
-  const isPremiumLocked = currentHour >= 13 && !isLoggedIn;
-
   // 出馬表テーブル — netkeiba shutuba_past 風: 枠|馬番|MY印|馬情報|予測勝率|逃げ馬指数|1走前〜5走前
   html += '<div class="entries-table-wrapper"><table class="entries-table"><thead><tr>';
   html += '<th class="sticky-col col-waku">枠</th><th class="sticky-col col-umaban">馬番</th><th class="th-my-mark">MY印</th><th class="col-horse">馬情報</th>';
-  html += `<th>予測勝率${isPremiumLocked ? '' : ' <span class="free-badge">FREE</span>'}</th>`;
-  html += `<th class="col-ten-index">逃げ馬指数${isPremiumLocked ? '' : ' <span class="free-badge">FREE</span>'}</th>`;
+  html += '<th>予測勝率 <span class="free-badge">FREE</span></th>';
+  html += '<th class="col-ten-index">逃げ馬指数 <span class="free-badge">FREE</span></th>';
   html += '<th>1走前</th><th>2走前</th><th>3走前</th><th>4走前</th><th>5走前</th>';
   html += '</tr></thead><tbody>';
 
@@ -604,20 +599,12 @@ async function renderRaceDetail() {
     // 予測勝率
     const winRate = calcWinRate(raceId, entry.number);
     const wrCls = winRateClass(winRate);
-    if (isPremiumLocked) {
-      html += `<td><div class="premium-overlay"><span class="premium-lock">有料会員限定</span></div></td>`;
-    } else {
-      html += `<td class="winrate-cell ${wrCls}">${winRate.toFixed(1)}%</td>`;
-    }
+    html += `<td class="winrate-cell ${wrCls}">${winRate.toFixed(1)}%</td>`;
 
     // 逃げ馬指数
     const tenVal = calcTenIndex(raceId, entry.number);
     const tenCls = tenIndexClass(tenVal);
-    if (isPremiumLocked) {
-      html += `<td class="ten-index"><div class="premium-overlay"><span class="premium-lock">有料会員限定</span></div></td>`;
-    } else {
-      html += `<td class="ten-index ${tenCls}">${tenVal.toFixed(1)}</td>`;
-    }
+    html += `<td class="ten-index ${tenCls}">${tenVal.toFixed(1)}</td>`;
 
     // 過去5走（各走ごとに1カラム）
     const pastResults = entry.pastResults || [];
@@ -668,23 +655,31 @@ async function renderRaceDetail() {
     </div>`;
     // 予測勝率 + MY印
     html += '<div class="entry-card-stats">';
-    if (isPremiumLocked) {
-      html += '<span class="premium-lock" style="font-size:0.75rem">有料会員限定</span>';
-    } else {
-      html += `<span class="${wrCls}">予測勝率: <strong>${winRate.toFixed(1)}%</strong></span>`;
-    }
+    html += `<span class="${wrCls}">予測勝率: <strong>${winRate.toFixed(1)}%</strong></span>`;
     html += `<span class="my-mark-cell ${myMarkClass}" data-race="${raceId}" data-num="${entry.number}" style="cursor:pointer;font-size:1.1rem;font-weight:900;min-width:28px;text-align:center">${myMark}</span>`;
     html += '</div>';
-    // 過去走サマリー（1行テキスト）
+    // 過去走アコーディオン
     const pastResults = entry.pastResults || [];
     if (pastResults.length > 0) {
-      const nums = ['①','②','③','④','⑤'];
-      const pastSummary = pastResults.slice(0, 5).map((p, i) => {
-        if (!p) return '';
-        const rank = p.rank != null ? `${p.rank}着` : '';
-        return `${nums[i]}${rank}`;
-      }).filter(Boolean).join(' ');
-      html += `<div class="entry-card-past">${pastSummary}</div>`;
+      html += `<div class="entry-card-past-toggle" data-target="past-${entry.number}">近走成績 ▼</div>`;
+      html += `<div class="entry-card-past-detail" id="past-${raceId}-${entry.number}" style="display:none">`;
+      for (let pi = 0; pi < Math.min(5, pastResults.length); pi++) {
+        const p = pastResults[pi];
+        if (!p) continue;
+        const rankCls = pastRankClass(p.rank);
+        const rankDisplay = p.rank != null ? p.rank : '-';
+        const venue = p.venue || '';
+        const dist = p.distance || '';
+        const cond = p.condition || '';
+        const popText = p.popularity != null ? `(${p.popularity}人気)` : '';
+        const timeStr = p.time || '';
+        const last3f = p.last3f ? `上${p.last3f}` : '';
+        html += `<div class="past-run ${rankCls}">
+          <span class="past-run-rank">${rankDisplay}着</span>
+          <span class="past-run-info">${venue}${dist} ${cond} ${popText} ${timeStr} ${last3f}</span>
+        </div>`;
+      }
+      html += '</div>';
     }
     html += '</div>';
   }
@@ -753,6 +748,16 @@ async function renderRaceDetail() {
       document.querySelector('.entries-mobile').style.display = view === 'card' ? '' : 'none';
       document.querySelectorAll('.view-toggle-btn').forEach(b => b.classList.remove('active'));
       this.classList.add('active');
+    });
+  });
+
+  // 過去走アコーディオンのトグル
+  document.querySelectorAll('.entry-card-past-toggle').forEach(toggle => {
+    toggle.addEventListener('click', function() {
+      const detail = this.nextElementSibling;
+      const isOpen = detail.style.display !== 'none';
+      detail.style.display = isOpen ? 'none' : '';
+      this.textContent = isOpen ? '近走成績 ▼' : '近走成績 ▲';
     });
   });
 
