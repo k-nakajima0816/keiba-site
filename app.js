@@ -634,6 +634,62 @@ async function renderRaceDetail() {
 
   html += '</tbody></table></div>';
 
+  // ── モバイル用: 表示切替トグル + カードリスト ──
+  const savedView = localStorage.getItem('entryViewMode') || 'card';
+  html += `<div class="entries-view-toggle">
+    <button class="view-toggle-btn ${savedView === 'card' ? 'active' : ''}" data-view="card">カード</button>
+    <button class="view-toggle-btn ${savedView === 'table' ? 'active' : ''}" data-view="table">テーブル</button>
+  </div>`;
+
+  html += '<div class="entries-mobile">';
+  for (const entry of race.entries) {
+    const wakuNum = getWakuNumber(entry.number, totalHorses);
+    const waku = WAKU_COLORS[wakuNum - 1];
+    const borderColor = waku.bg === '#ffffff' ? waku.border : waku.bg;
+    const myMark = MyMarks.get(raceId, entry.number);
+    const myMarkClass = myMark ? MARK_CLASSES[myMark] : '';
+    const oddsStr = entry.odds != null ? entry.odds.toFixed(1) : '-';
+    const popStr = entry.popularity != null ? `${entry.popularity}人気` : '';
+    const winRate = calcWinRate(raceId, entry.number);
+    const wrCls = winRateClass(winRate);
+
+    html += `<div class="entry-card" style="border-left:4px solid ${borderColor}">`;
+    // ヘッダー: 枠番 馬番 馬名 | オッズ・人気
+    html += `<div class="entry-card-header">
+      <span class="waku-badge" style="background:${waku.bg};color:${waku.text};border:1px solid ${waku.border}">${wakuNum}</span>
+      <span class="horse-num" style="border-left:3px solid ${borderColor}">${entry.number}</span>
+      <span class="entry-card-name">${entry.name}</span>
+      <span class="entry-card-odds">${oddsStr}倍<br>${popStr}</span>
+    </div>`;
+    // 詳細: 性齢/斤量、騎手/調教師、馬体重
+    html += `<div class="entry-card-detail">
+      ${entry.sex || ''}${entry.age || ''} / ${entry.weight}kg &nbsp; ${entry.jockey} / ${entry.trainer || ''}<br>
+      馬体重 ${formatBodyWeight(entry.bodyWeight)}
+    </div>`;
+    // 予測勝率 + MY印
+    html += '<div class="entry-card-stats">';
+    if (isPremiumLocked) {
+      html += '<span class="premium-lock" style="font-size:0.75rem">有料会員限定</span>';
+    } else {
+      html += `<span class="${wrCls}">予測勝率: <strong>${winRate.toFixed(1)}%</strong></span>`;
+    }
+    html += `<span class="my-mark-cell ${myMarkClass}" data-race="${raceId}" data-num="${entry.number}" style="cursor:pointer;font-size:1.1rem;font-weight:900;min-width:28px;text-align:center">${myMark}</span>`;
+    html += '</div>';
+    // 過去走サマリー（1行テキスト）
+    const pastResults = entry.pastResults || [];
+    if (pastResults.length > 0) {
+      const nums = ['①','②','③','④','⑤'];
+      const pastSummary = pastResults.slice(0, 5).map((p, i) => {
+        if (!p) return '';
+        const rank = p.rank != null ? `${p.rank}着` : '';
+        return `${nums[i]}${rank}`;
+      }).filter(Boolean).join(' ');
+      html += `<div class="entry-card-past">${pastSummary}</div>`;
+    }
+    html += '</div>';
+  }
+  html += '</div>';
+
   // 的中速報ティッカーバナー
   html += buildHitsTickerHTML(hitsData, predictors);
 
@@ -679,6 +735,26 @@ async function renderRaceDetail() {
   }
 
   main.innerHTML = html;
+
+  // モバイル表示切替: 初期状態設定
+  if (savedView === 'table') {
+    const mc = document.querySelector('.entries-mobile');
+    if (mc) mc.style.display = 'none';
+  } else {
+    const tw = document.querySelector('.entries-table-wrapper');
+    if (tw) tw.style.display = 'none';
+  }
+  // トグルボタンのイベント
+  document.querySelectorAll('.view-toggle-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const view = this.dataset.view;
+      localStorage.setItem('entryViewMode', view);
+      document.querySelector('.entries-table-wrapper').style.display = view === 'table' ? '' : 'none';
+      document.querySelector('.entries-mobile').style.display = view === 'card' ? '' : 'none';
+      document.querySelectorAll('.view-toggle-btn').forEach(b => b.classList.remove('active'));
+      this.classList.add('active');
+    });
+  });
 
   // マイ印のクリックイベント
   qsa('.my-mark-cell').forEach(cell => {
